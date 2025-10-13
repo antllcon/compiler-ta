@@ -1,0 +1,2 @@
+add_library(automaton Automaton.cpp)
+target_include_directories(automaton PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR})
