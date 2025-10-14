@@ -1,0 +1,5 @@
+digraph Min
+{
+    start = 0;
+    final = 0;
+}

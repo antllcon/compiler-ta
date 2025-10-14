@@ -1,0 +1,9 @@
+digraph NonDeterministic
+{
+    start = 0;
+    final = 2, 3;
+
+    0 -> 1 [label = "a"];
+    1 -> 2 [label = "b"];
+    1 -> 3 [label = "b"];
+}

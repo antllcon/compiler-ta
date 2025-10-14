@@ -1,0 +1,9 @@
+digraph EpsilonChain
+{
+    start = 0;
+    final = 3;
+
+    0 -> 1 [label = "a"];
+    1 -> 2;
+    2 -> 3;
+}
