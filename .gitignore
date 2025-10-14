@@ -2,6 +2,7 @@
 .vscode/
 .vs/
 out/
+output/
 cmake-build-*/
 _deps/
 *.exe
