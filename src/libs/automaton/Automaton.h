@@ -7,27 +7,33 @@
 
 using Symbol = unsigned char;
 using State = unsigned int;
+constexpr Symbol EPSILON = 'e';
 
 class Automaton
 {
 public:
-	explicit Automaton(const std::string& filename);
+	Automaton() = default;
 	~Automaton() = default;
 
 	// void Minimize();
 	// void Determine();
-	//
 	// bool Recognize(const std::string& inputString) const;
-	void Display() const;
+	bool IsDeterministic() const;
+
+	void SetTitle(const std::string& title);
+	void SetStartState(State startState);
+	void AddFinalState(State finalState);
+	void AddTransition(State from, Symbol on, State to);
+
+	const std::string& GetTitle() const;
+	const std::set<State>& GetStates() const;
+	const std::set<Symbol>& GetAlphabet() const;
+	const std::map<State, std::map<Symbol, std::set<State>>>& GetTransitions() const;
+	const std::set<State>& GetFinalStates() const;
+	State GetStartState() const;
 
 private:
-	void ParseLine(const std::string& line);
-	void HandleStartDeclaration(const std::smatch& match);
-	void HandleFinalDeclaration(const std::smatch& match);
-	void HandleLabelTransition(const std::smatch& match);
-	void HandleEpsilonTransition(const std::smatch& match);
-	void ParseTransitionLabels(State from, State to, const std::string& labels);
-
+	std::string m_title;
 	std::set<State> m_states;
 	std::set<Symbol> m_alphabet;
 	std::map<State, std::map<Symbol, std::set<State>>> m_transitions;
