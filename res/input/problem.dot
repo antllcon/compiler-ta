@@ -1,0 +1,19 @@
+digraph ComplexTestAutomaton
+{
+    start = 0;
+    final = 7, 9;
+
+    0 -> 1 [label = "a"];
+    0 -> 3 [label = "a"];
+    1 -> 2 [label = "b"];
+    3 -> 2 [label = "b"];
+    1 -> 5 [label = "c"];
+    3 -> 5 [label = "c"];
+    2 -> 4 [label = "c"];
+    4 -> 2 [label = "d"];
+    4 -> 4 [label = "a"];
+    2 -> 6;
+    6 -> 7 [label = "e"];
+    5 -> 9 [label = "a, e"];
+    8 -> 8 [label = "x, y"];
+}
