@@ -19,6 +19,8 @@ public:
 	// void Determine();
 	// bool Recognize(const std::string& inputString) const;
 	bool IsDeterministic() const;
+	void Swap(Automaton& automaton);
+	void Clear();
 
 	void SetTitle(const std::string& title);
 	void SetStartState(State startState);

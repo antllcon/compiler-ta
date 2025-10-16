@@ -2,6 +2,7 @@
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
 #include "AutomatonVisualizer.h"
+#include "MinimizationAlghoritm.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -14,7 +15,9 @@ int main()
 
 	try
 	{
-		auto automaton = AutomatonBuilder::FromFile("input/cycle.dot");
+		auto automaton = AutomatonBuilder::FromFile("input/tryMinimize.dot");
+		MinimizationAlgorithm::Minimize(automaton, true);
+
 		AutomatonVisualizer::Display(automaton);
 		AutomatonVisualizer::ExportToDot(automaton, "output/test.dot");
 	}
