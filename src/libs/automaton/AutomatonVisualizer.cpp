@@ -10,7 +10,7 @@
 namespace
 {
 constexpr int ALPHABET_COL_WIDTH = 15;
-constexpr int STATE_COL_WIDTH = 3;
+constexpr int STATE_COL_WIDTH = 4;
 
 void AssertIsFileOpen(const std::ofstream& file)
 {
@@ -23,7 +23,7 @@ void AssertIsFileOpen(const std::ofstream& file)
 
 void AutomatonVisualizer::Display(const Automaton& automaton)
 {
-	std::cout << "Automaton";
+	std::cout << "\nAutomaton";
 	if (!automaton.GetTitle().empty())
 	{
 		std::cout << " " << automaton.GetTitle();
@@ -167,10 +167,12 @@ void AutomatonVisualizer::ExportToDot(const Automaton& automaton, const std::str
 void AutomatonVisualizer::PrintMinimizationTable(
 	const std::vector<Symbol>& alphabet,
 	const std::vector<std::set<State>>& partitions,
-	const std::map<State, std::vector<int>>& stateSignatures)
+	const std::map<State, std::vector<int>>& stateSignatures,
+	int iterationNumber)
 {
-	auto getClassName = [](int id) {
-		return std::string(1, 'A' + id);
+	auto getClassName = [iterationNumber](int classIndex) {
+		char letter = 'A' + (iterationNumber - 1);
+		return letter + std::to_string(classIndex + 1);
 	};
 
 	// Рассчитываем общую ширину таблицы

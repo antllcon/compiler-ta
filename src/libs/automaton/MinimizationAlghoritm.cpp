@@ -98,7 +98,7 @@ void MinimizationAlgorithm::Minimize(Automaton& automaton, bool logSteps)
 		iteration++;
 		if (logSteps)
 		{
-			std::cout << "Iteration " << iteration << std::endl;
+			std::cout << "\nIteration " << iteration << std::endl;
 		}
 
 		if (!RefineSinglePass(automaton, partitions, logSteps, iteration))
@@ -157,7 +157,7 @@ bool MinimizationAlgorithm::RefineSinglePass(
 
 	if (logSteps)
 	{
-		AutomatonVisualizer::PrintMinimizationTable(alphabet, partitions, stateSignatures);
+		AutomatonVisualizer::PrintMinimizationTable(alphabet, partitions, stateSignatures, iterationNumber);
 	}
 
 	std::vector<std::set<State>> newPartitions;

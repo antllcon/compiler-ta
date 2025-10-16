@@ -12,6 +12,7 @@ public:
 	static void PrintMinimizationTable(
 		const std::vector<Symbol>& alphabet,
 		const std::vector<std::set<State>>& partitions,
-		const std::map<State, std::vector<int>>& stateSignatures
+		const std::map<State, std::vector<int>>& stateSignatures,
+		int iterationNumber
 	);
 };
