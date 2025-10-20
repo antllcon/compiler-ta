@@ -1,0 +1,15 @@
+digraph SinglePairEquivalenceTest
+{
+// Этот автомат соответствует объекту 'testDfa' из теста
+// MergesSinglePairOfEquivalentStates
+start = 0;
+final = 3;
+
+0 -> 1 [label = "a"];
+0 -> 2 [label = "b"];
+
+// Состояния 1 и 2 эквивалентны,
+// так как оба ведут в состояние 3 по символу 'c'.
+1 -> 3 [label = "c"];
+2 -> 3 [label = "c"];
+}
