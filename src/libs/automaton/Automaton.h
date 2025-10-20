@@ -15,7 +15,6 @@ public:
 	Automaton() = default;
 	~Automaton() = default;
 
-	// void Minimize();
 	// void Determine();
 	// bool Recognize(const std::string& inputString) const;
 	bool IsDeterministic() const;

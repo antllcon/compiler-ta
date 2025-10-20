@@ -15,11 +15,11 @@ int main()
 
 	try
 	{
-		auto automaton = AutomatonBuilder::FromFile("input/tryMinimize.dot");
-		MinimizationAlgorithm::Minimize(automaton, true);
+		auto automaton = AutomatonBuilder::FromFile("input/itmo.dot");
+		auto minAutomaton = MinimizationAlgorithm::Minimize(automaton, true);
 
-		AutomatonVisualizer::Display(automaton);
-		AutomatonVisualizer::ExportToDot(automaton, "output/test.dot");
+		AutomatonVisualizer::Display(minAutomaton);
+		AutomatonVisualizer::ExportToDot(minAutomaton, "output/test.dot");
 	}
 	catch (const std::invalid_argument& e)
 	{

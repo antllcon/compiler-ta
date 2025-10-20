@@ -8,9 +8,12 @@ class MinimizationAlgorithm
 public:
 	MinimizationAlgorithm() = default;
 	virtual ~MinimizationAlgorithm() = default;
-
-	static void Minimize(Automaton& automaton, bool logSteps = false);
+	static Automaton Minimize(const Automaton& automaton, bool logSteps = false);
 
 private:
-	static bool RefineSinglePass(const Automaton& automaton, std::vector<std::set<State>>& partitions, bool logSteps , int iterationNumber);
+	static bool RefineSinglePass(
+		const Automaton& automaton,
+		std::vector<std::set<State>>& partitions,
+		bool logSteps,
+		int iterationNumber);
 };

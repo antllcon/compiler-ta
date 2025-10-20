@@ -11,3 +11,7 @@ target_link_libraries(compiler-ta PRIVATE ${MODULES})
 set_target_properties(compiler-ta PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/res"
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

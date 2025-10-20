@@ -75,9 +75,58 @@ std::vector<std::set<State>> InitialPartition(const Automaton& automaton, const 
 
 	return partitions;
 }
+
+Automaton BuildMinimizedAutomaton(const Automaton& original, const std::vector<std::set<State>>& partitions)
+{
+	Automaton minimized;
+	minimized.SetTitle(original.GetTitle() + "Minimized");
+	if (partitions.empty())
+	{
+		return minimized;
+	}
+
+	std::map<State, State> oldStateToNewState;
+	for (State newStateId = 0; newStateId < partitions.size(); ++newStateId)
+	{
+		for (const State oldState : partitions[newStateId])
+		{
+			oldStateToNewState[oldState] = newStateId;
+		}
+	}
+
+	minimized.SetStartState(oldStateToNewState.at(original.GetStartState()));
+
+	for (const State oldFinalState : original.GetFinalStates())
+	{
+		if (oldStateToNewState.contains(oldFinalState))
+		{
+			minimized.AddFinalState(oldStateToNewState.at(oldFinalState));
+		}
+	}
+
+	for (State newStateId = 0; newStateId < partitions.size(); ++newStateId)
+	{
+		State representative = *partitions[newStateId].begin();
+		if (original.GetTransitions().contains(representative))
+		{
+			for (const auto& onPair : original.GetTransitions().at(representative))
+			{
+				const Symbol symbol = onPair.first;
+				const State oldDestState = *onPair.second.begin();
+				if (oldStateToNewState.contains(oldDestState))
+				{
+					State newDestState = oldStateToNewState.at(oldDestState);
+					minimized.AddTransition(newStateId, symbol, newDestState);
+				}
+			}
+		}
+	}
+
+	return minimized;
+}
 } // namespace
 
-void MinimizationAlgorithm::Minimize(Automaton& automaton, bool logSteps)
+Automaton MinimizationAlgorithm::Minimize(const Automaton& automaton, bool logSteps)
 {
 	if (!automaton.IsDeterministic())
 	{
@@ -86,7 +135,7 @@ void MinimizationAlgorithm::Minimize(Automaton& automaton, bool logSteps)
 
 	if (automaton.GetStates().empty())
 	{
-		return;
+		return automaton;
 	}
 
 	const auto reachableStates = FindReachableStates(automaton);
@@ -107,6 +156,8 @@ void MinimizationAlgorithm::Minimize(Automaton& automaton, bool logSteps)
 			break;
 		}
 	}
+
+	return BuildMinimizedAutomaton(automaton, partitions);
 }
 
 bool MinimizationAlgorithm::RefineSinglePass(
