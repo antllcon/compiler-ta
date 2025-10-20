@@ -1,5 +1,6 @@
 #include "Automaton.h"
-#include "MinimizationAlghoritm.h"
+#include "MinimizationAlgorithm.h"
+
 #include <gtest/gtest.h>
 
 class MinimizationTest : public ::testing::Test

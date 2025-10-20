@@ -1,4 +1,4 @@
-#include "MinimizationAlghoritm.h"
+#include "MinimizationAlgorithm.h"
 
 #include "AutomatonVisualizer.h"
 

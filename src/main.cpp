@@ -2,7 +2,7 @@
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
 #include "AutomatonVisualizer.h"
-#include "MinimizationAlghoritm.h"
+#include "MinimizationAlgorithm.h"
 
 #include <cstdlib>
 #include <filesystem>
