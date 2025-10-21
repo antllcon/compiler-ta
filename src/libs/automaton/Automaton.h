@@ -15,10 +15,11 @@ public:
 	Automaton() = default;
 	~Automaton() = default;
 
-	// bool Recognize(const std::string& inputString) const;
-	bool IsDeterministic() const;
+	bool Recognize(const std::string& inputString, bool logSteps = false) const;
 	void Swap(Automaton& automaton);
 	void Clear();
+
+	bool IsDeterministic() const;
 
 	void SetTitle(const std::string& title);
 	void SetStartState(State startState);

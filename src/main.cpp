@@ -3,6 +3,7 @@
 #include "AutomatonBuilder.h"
 #include "AutomatonVisualizer.h"
 #include "DeterminizationAlgorithm.h"
+#include "MinimizationAlgorithm.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -17,13 +18,23 @@ int main()
 	{
 		auto automaton = AutomatonBuilder::FromFile("input/home.dot");
 		auto determination = DeterminizationAlgorithm::Determine(automaton, true);
-		AutomatonVisualizer::ExportToDot(determination, "output/test.dot");
-
-
 		// auto minimization = MinimizationAlgorithm::Minimize(determination, true);
 
-		// AutomatonVisualizer::Display(minimization);
-		// AutomatonVisualizer::ExportToDot(minimization, "output/test.dot");
+		const std::vector<std::string> testWords = {
+			"1101",
+			"1111101",
+			"0",
+			"0001",
+			"11010",
+			"1", // Ошибочный (нет подходящего конечного состояния)
+			"1101",
+			"11101",
+			"000",
+			"000001",
+			"11010"};
+
+		AutomatonVisualizer::TestStrings(determination, testWords, true);
+		AutomatonVisualizer::ExportToDot(determination, "output/test.dot");
 	}
 	catch (const std::invalid_argument& e)
 	{
