@@ -1,0 +1,16 @@
+digraph determMe
+{
+    start = 0;
+    final = 5, 8;
+
+    0 -> 1;
+    1 -> 2;
+    2 -> 3 [label = "a"];
+    2 -> 6 [label = "a"];
+    3 -> 4 [label = "b"];
+    4 -> 5;
+    6 -> 7 [label = "c"];
+    7 -> 2 [label = "b"];
+    0 -> 8 [label = "c"];
+    8 -> 8 [label = "a, c"];
+}

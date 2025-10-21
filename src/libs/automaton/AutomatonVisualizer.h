@@ -6,7 +6,9 @@
 class AutomatonVisualizer
 {
 public:
-	// TODO: добавить метод перевода в строку
+	using DfaStateKey = std::set<State>;
+	using DfaTransitionTable = std::map<DfaStateKey, std::map<Symbol, DfaStateKey>>;
+
     static void Display(const Automaton& automaton);
     static void ExportToDot(const Automaton& automaton, const std::string& filename);
 	static void PrintMinimizationTable(
@@ -15,4 +17,7 @@ public:
 		const std::map<State, std::vector<int>>& stateSignatures,
 		int iterationNumber
 	);
+	static void PrintDeterminizationTable(
+		const std::vector<Symbol>& alphabet,
+		const DfaTransitionTable& dfaTransitions);
 };

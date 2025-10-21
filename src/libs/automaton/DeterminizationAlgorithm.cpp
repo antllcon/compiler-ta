@@ -1,4 +1,7 @@
 #include "DeterminizationAlgorithm.h"
+#include "AutomatonVisualizer.h"
+
+#include <iostream>
 #include <queue>
 
 namespace
@@ -6,7 +9,7 @@ namespace
 const std::string DETERMINIZED_SUFFIX = "Determinized";
 } // namespace
 
-Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa)
+Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa, bool logSteps)
 {
 	Automaton dfa;
 	dfa.SetTitle(nfa.GetTitle() + DETERMINIZED_SUFFIX);
@@ -17,6 +20,7 @@ Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa)
 
 	std::map<std::set<State>, State> dfaStateRegister;
 	std::queue<std::set<State>> unprocessedStates;
+	AutomatonVisualizer::DfaTransitionTable dfaTransitionsForPrint;
 
 	auto startStateKey = EpsilonClosure(nfa, nfa.GetStartState());
 
@@ -35,6 +39,8 @@ Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa)
 		for (const Symbol symbol : nfa.GetAlphabet())
 		{
 			auto nextStateKey = EpsilonClosure(nfa, Move(nfa, currentStateKey, symbol));
+			dfaTransitionsForPrint[currentStateKey][symbol] = nextStateKey;
+
 			if (nextStateKey.empty())
 			{
 				continue;
@@ -52,6 +58,17 @@ Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa)
 			const auto destinationDfaStateId = dfaStateRegister.at(nextStateKey);
 			dfa.AddTransition(dfaState, symbol, destinationDfaStateId);
 		}
+	}
+
+	if (logSteps)
+	{
+		std::cout << "Determinization Transition table" << std::endl;
+
+		const auto& nfaAlphabet = nfa.GetAlphabet();
+		std::vector sortedAlphabet(nfaAlphabet.begin(), nfaAlphabet.end());
+		std::sort(sortedAlphabet.begin(), sortedAlphabet.end());
+
+		AutomatonVisualizer::PrintDeterminizationTable(sortedAlphabet, dfaTransitionsForPrint);
 	}
 
 	// Определение конечных состояний
@@ -83,21 +100,22 @@ std::set<State> DeterminizationAlgorithm::EpsilonClosure(const Automaton& nfa, S
 	queue.push(state);
 
 	const auto& transitions = nfa.GetTransitions();
-
 	while (!queue.empty())
 	{
 		State currentState = queue.front();
 		queue.pop();
 
-		if (transitions.contains(currentState) && transitions.at(currentState).contains(EPSILON))
+		if (!transitions.contains(currentState) || !transitions.at(currentState).contains(EPSILON))
 		{
-			for (const State targetState : transitions.at(currentState).at(EPSILON))
+			continue;
+		}
+
+		for (const State targetState : transitions.at(currentState).at(EPSILON))
+		{
+			if (!closure.contains(targetState))
 			{
-				if (!closure.contains(targetState))
-				{
-					closure.insert(targetState);
-					queue.push(targetState);
-				}
+				closure.insert(targetState);
+				queue.push(targetState);
 			}
 		}
 	}

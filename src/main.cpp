@@ -2,7 +2,7 @@
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
 #include "AutomatonVisualizer.h"
-#include "MinimizationAlgorithm.h"
+#include "DeterminizationAlgorithm.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -15,11 +15,15 @@ int main()
 
 	try
 	{
-		auto automaton = AutomatonBuilder::FromFile("input/itmo.dot");
-		auto minAutomaton = MinimizationAlgorithm::Minimize(automaton, true);
+		auto automaton = AutomatonBuilder::FromFile("input/home.dot");
+		auto determination = DeterminizationAlgorithm::Determine(automaton, true);
+		AutomatonVisualizer::ExportToDot(determination, "output/test.dot");
 
-		AutomatonVisualizer::Display(minAutomaton);
-		AutomatonVisualizer::ExportToDot(minAutomaton, "output/test.dot");
+
+		// auto minimization = MinimizationAlgorithm::Minimize(determination, true);
+
+		// AutomatonVisualizer::Display(minimization);
+		// AutomatonVisualizer::ExportToDot(minimization, "output/test.dot");
 	}
 	catch (const std::invalid_argument& e)
 	{

@@ -230,3 +230,91 @@ void AutomatonVisualizer::PrintMinimizationTable(
 	}
 	printLine();
 }
+
+void AutomatonVisualizer::PrintDeterminizationTable(
+	const std::vector<Symbol>& alphabet,
+	const DfaTransitionTable& dfaTransitions)
+{
+	if (dfaTransitions.empty())
+	{
+		return;
+	}
+
+	// Вспомогательная лямбда для красивого вывода множества состояний
+	auto statesToString = [](const DfaStateKey& states) -> std::string {
+		if (states.empty()) return "-";
+		std::stringstream ss;
+		ss << "{";
+		for (auto it = states.begin(); it != states.end(); ++it)
+		{
+			ss << *it << (std::next(it) == states.end() ? "" : ",");
+		}
+		ss << "}";
+		return ss.str();
+	};
+
+	// Динамический расчет ширины колонок
+	size_t firstColWidth = 12;
+	std::map<Symbol, size_t> columnWidths;
+
+	for (Symbol s : alphabet)
+	{
+		columnWidths[s] = std::string(1, s).length();
+	}
+
+	for (const auto& row : dfaTransitions)
+	{
+		firstColWidth = std::max(firstColWidth, statesToString(row.first).length());
+		for (Symbol s : alphabet)
+		{
+			if (row.second.contains(s))
+			{
+				columnWidths[s] = std::max(columnWidths[s], statesToString(row.second.at(s)).length());
+			}
+		}
+	}
+
+	firstColWidth += 4;
+	for (Symbol s : alphabet)
+	{
+		columnWidths[s] += 4;
+	}
+
+	auto printLine = [&]() {
+		std::cout << std::string(firstColWidth, '-');
+		for (Symbol s : alphabet)
+		{
+			std::cout << std::string(columnWidths.at(s), '-');
+		}
+		std::cout << "-\n";
+	};
+
+	// Печать таблицы
+	printLine();
+
+	// Заголовок
+	std::cout << "|" << std::left << std::setw(firstColWidth - 1) << " State / Alph" << "|";
+	for (Symbol s : alphabet)
+	{
+		std::cout << std::left << std::setw(columnWidths.at(s) - 1) << (" " + std::string(1, s)) << "|";
+	}
+	std::cout << "\n";
+	printLine();
+
+	// Строки с данными
+	for (const auto& row : dfaTransitions)
+	{
+		std::cout << "|" << std::left << std::setw(firstColWidth - 1) << (" " + statesToString(row.first)) << "|";
+		for (Symbol s : alphabet)
+		{
+			std::string cellContent = "-";
+			if (row.second.contains(s))
+			{
+				cellContent = statesToString(row.second.at(s));
+			}
+			std::cout << std::left << std::setw(columnWidths.at(s) - 1) << (" " + cellContent) << "|";
+		}
+		std::cout << "\n";
+	}
+	printLine();
+}
