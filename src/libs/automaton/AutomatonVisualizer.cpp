@@ -21,6 +21,32 @@ void AssertIsFileOpen(const std::ofstream& file)
 }
 } // namespace
 
+void AutomatonVisualizer::PrintRecognize(const std::string& word, bool result, const std::string& reason)
+{
+	if (!reason.empty())
+	{
+		std::cout << "\n";
+	}
+
+	std::cout << (result ? "[true] " : "[false]") << "\t" << word << "\n";
+
+	if (!reason.empty())
+	{
+		std::cout << "Reason: " << reason << "\n\n";
+	}
+}
+
+void AutomatonVisualizer::TestStrings(const Automaton& automaton, const std::vector<std::string>& words, bool logSteps)
+{
+	std::cout << "\nRecognition words\n";
+	std::cout << "-----------------\n";
+	for (const std::string& word : words)
+	{
+		automaton.Recognize(word, logSteps);
+	}
+	std::cout << "-----------------\n";
+}
+
 void AutomatonVisualizer::Display(const Automaton& automaton)
 {
 	std::cout << "\nAutomaton";

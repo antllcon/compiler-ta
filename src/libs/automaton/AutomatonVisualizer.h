@@ -9,6 +9,8 @@ public:
 	using DfaStateKey = std::set<State>;
 	using DfaTransitionTable = std::map<DfaStateKey, std::map<Symbol, DfaStateKey>>;
 
+	static void PrintRecognize(const std::string& word, bool result, const std::string& reason);
+	static void TestStrings(const Automaton& automaton, const std::vector<std::string>& words, bool logSteps);
     static void Display(const Automaton& automaton);
     static void ExportToDot(const Automaton& automaton, const std::string& filename);
 	static void PrintMinimizationTable(
