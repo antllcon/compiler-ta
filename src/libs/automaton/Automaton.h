@@ -15,23 +15,26 @@ public:
 	Automaton() = default;
 	~Automaton() = default;
 
+	void SetTitle(const std::string& title);
+	const std::string& GetTitle() const;
+
+	void SetStartState(State startState);
+	State GetStartState() const;
+
+	void AddFinalState(State finalState);
+	const std::set<State>& GetFinalStates() const;
+
+	void AddTransition(State from, Symbol on, State to);
+	const std::map<State, std::map<Symbol, std::set<State>>>& GetTransitions() const;
+
+	const std::set<State>& GetStates() const;
+	const std::set<Symbol>& GetAlphabet() const;
+
 	bool Recognize(const std::string& inputString, bool logSteps = false) const;
 	void Swap(Automaton& automaton);
 	void Clear();
 
 	bool IsDeterministic() const;
-
-	void SetTitle(const std::string& title);
-	void SetStartState(State startState);
-	void AddFinalState(State finalState);
-	void AddTransition(State from, Symbol on, State to);
-
-	const std::string& GetTitle() const;
-	const std::set<State>& GetStates() const;
-	const std::set<Symbol>& GetAlphabet() const;
-	const std::map<State, std::map<Symbol, std::set<State>>>& GetTransitions() const;
-	const std::set<State>& GetFinalStates() const;
-	State GetStartState() const;
 
 private:
 	std::string m_title;
