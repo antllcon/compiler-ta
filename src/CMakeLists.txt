@@ -1,4 +1,4 @@
-set(MODULES automaton)
+set(MODULES automaton grammar)
 
 foreach (MODULE ${MODULES})
     add_subdirectory(libs/${MODULE})
