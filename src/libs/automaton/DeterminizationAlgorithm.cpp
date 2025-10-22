@@ -62,7 +62,7 @@ Automaton DeterminizationAlgorithm::Determine(const Automaton& nfa, bool logStep
 
 	if (logSteps)
 	{
-		std::cout << "Determinization Transition table" << std::endl;
+		std::cout << "Determinization transition table" << std::endl;
 
 		const auto& nfaAlphabet = nfa.GetAlphabet();
 		std::vector sortedAlphabet(nfaAlphabet.begin(), nfaAlphabet.end());
