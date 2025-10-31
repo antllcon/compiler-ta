@@ -1,1 +1,3 @@
-add_subdirectory(automaton grammar)
+add_subdirectory(automaton)
+add_subdirectory(grammar)
+add_subdirectory(regular)
