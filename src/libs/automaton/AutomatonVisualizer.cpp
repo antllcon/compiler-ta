@@ -117,10 +117,12 @@ void AutomatonVisualizer::ExportToDot(const Automaton& automaton, const std::str
 	AssertIsFileOpen(file);
 
 	file << "digraph " << (automaton.GetTitle().empty() ? filename : automaton.GetTitle()) << std::endl;
-	file << " {" << std::endl;
+	file << "{" << std::endl;
 
 	file << "    start = " << automaton.GetStartState() << ";" << std::endl;
 	file << "    final = ";
+
+	// Формируем строку с финальными состояниями
 	std::string finalStatesStr;
 	for (const State state : automaton.GetFinalStates())
 	{
@@ -130,8 +132,26 @@ void AutomatonVisualizer::ExportToDot(const Automaton& automaton, const std::str
 	{
 		finalStatesStr.resize(finalStatesStr.length() - 2);
 	}
-	file << finalStatesStr << ";" << std::endl
-		 << std::endl;
+	file << finalStatesStr << ";" << std::endl;
+
+	// Добавляем финальные состояния как двойные круги
+	if (!automaton.GetFinalStates().empty())
+	{
+		file << "    ";
+		bool first = true;
+		for (const State state : automaton.GetFinalStates())
+		{
+			if (!first)
+			{
+				file << ", ";
+			}
+			file << state;
+			first = false;
+		}
+		file << " [shape = doublecircle];" << std::endl;
+	}
+
+	file << std::endl;
 
 	std::map<std::pair<State, State>, std::vector<Symbol>> transitionsByPair;
 	for (const auto& fromPair : automaton.GetTransitions())
