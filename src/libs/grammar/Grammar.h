@@ -8,22 +8,24 @@ using SymbolString = std::string; // Терминалы и нетерминал�
 
 enum class ChomskyType
 {
-	TURING = 0,			  // Рекурсивно перечислимые (Turing machines)
-	CONTEXT_DEPENDED = 1, // Контекстно-зависимые (Linear Bounded Automata)
-	CONTEXT_FREE = 2,	  // Контекстно-свободные (Pushdown Automata)
-	REGULAR = 3,		  // Регулярные (Finite Automata)
+	TURING = 0,			  // Фразовые
+	CONTEXT_DEPENDED = 1, // Контекстно-зависимые
+	CONTEXT_FREE = 2,	  // Контекстно-свободные
+	REGULAR = 3,		  // Регулярные
 	UNKNOWN = -1		  // Если тип еще не определен
 };
 
-/**
- * @brief Структура для хранения одного правила вывода (продукции)
- */
+enum class RegularGrammarType
+{
+	LEFT_LINEAR,  // Все правила вида A -> Bw или A -> w
+	RIGHT_LINEAR, // Все правила вида A -> wB или A -> w
+	UNDEFINED	  // Смешанный тип, или нелинейная, или не-регулярная
+};
+
+// Правило вывода
 struct Production
 {
-	// TODO: не забыть написать проверку в Assert
-	// Левая часть правила (может быть > 1 символа для типов 0, 1)
 	SymbolString m_left;
-	// Правая часть правила
 	SymbolString m_right;
 };
 
@@ -48,17 +50,14 @@ public:
 	void SetStartSymbol(const SymbolString& startSymbol);
 	const SymbolString& GetStartSymbol() const;
 
-	void AddProductionFromString(const std::string& productionString);
 	void AddProduction(Production production);
-
 	const std::vector<Production>& GetProductions() const;
-	bool IsRegular() const;
 
-	// TODO: добавить проверки (IsTuring()...) для вида грамматики
+	bool IsRegular() const;
+	void ClearProductions();
+	static RegularGrammarType GetLinearityType(const Grammar& grammar);
 
 private:
-	// Production ParseProductionString(const std::string& productionString) const; // Написать в namespace {} в cpp файле
-
 	std::string m_name;
 	ChomskyType m_type = ChomskyType::UNKNOWN;
 	std::set<SymbolString> m_terminals;

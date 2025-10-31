@@ -15,14 +15,8 @@ void AssertIsSymbolNonTerminal(const SymbolString& symbol, const std::set<Symbol
 {
 	if (!nonTerminals.contains(symbol))
 	{
-		throw std::invalid_argument("Symbol '" + symbol + "' must be one of the known non-terminals.");
+		throw std::invalid_argument("Symbol '" + symbol + "' must be one of the known non-terminals");
 	}
-}
-
-
-Production ParseProductionStringImpl(const std::string& /*productionString*/)
-{
-	return {};
 }
 } // namespace
 
@@ -54,7 +48,6 @@ void Grammar::SetStartSymbol(const SymbolString& startSymbol)
 	AssertIsSymbolNonTerminal(startSymbol, m_nonTerminals);
 	m_startSymbol = startSymbol;
 }
-
 
 // Правая часть правила не должна быть пустой (ε-правила обрабатываются особо)
 // Замечание: Классические ε-правила имеют пустую правую часть
@@ -100,88 +93,107 @@ const std::vector<Production>& Grammar::GetProductions() const
 	return m_productions;
 }
 
-void Grammar::AddProductionFromString(const std::string& productionString)
-{
-	Production production = ParseProductionStringImpl(productionString);
-	AddProduction(std::move(production));
-}
-
 bool Grammar::IsRegular() const
 {
-	if (m_productions.empty())
+	return GetLinearityType(*this) != RegularGrammarType::UNDEFINED;
+}
+
+void Grammar::ClearProductions()
+{
+	m_productions.clear();
+}
+
+RegularGrammarType Grammar::GetLinearityType(const Grammar& grammar)
+{
+	std::set<char> nonTerminalChars;
+	for (const auto& ntString : grammar.GetNonTerminals())
 	{
-		return true;
+		if (ntString.length() != 1)
+		{
+			return RegularGrammarType::UNDEFINED;
+		}
+		nonTerminalChars.insert(ntString[0]);
 	}
 
-	int determinedType = -1;
-	for (const auto& production : m_productions)
+	bool hasLeftLinearRule = false;
+	bool hasRightLinearRule = false;
+
+	for (const auto& prod : grammar.GetProductions())
 	{
-		// 1. Проверка левой части: Должен быть один нетерминал
-		if (production.m_left.length() != 1 || !m_nonTerminals.contains(production.m_left))
+		if (prod.m_left.length() != 1 || nonTerminalChars.count(prod.m_left[0]) == 0)
 		{
-			// Нарушение основного правила для Типа 3
-			return false;
+			return RegularGrammarType::UNDEFINED;
 		}
 
-		// 2. Анализ правой части и определение типа правила
-		auto currentRuleType = -1;
-		bool ruleOk = false;
+		const std::string& rhs = prod.m_right;
 
-		const SymbolString& right = production.m_right;
-
-		if (right.empty()) // Правило A -> ε
+		if (rhs.empty())
 		{
-			// ε-правила допустимы и подходят под оба типа
-			ruleOk = true;
+			continue;
 		}
-		else if (right.length() == 1) // Правило A -> a
-		{
-			if (m_terminals.contains(right))
-			{
-				// Подходит под оба типа
-				ruleOk = true;
-			}
-		}
-		else if (right.length() == 2) // Правила A -> aB или A -> Ba
-		{
-			SymbolString firstSymbol = right.substr(0, 1);
-			SymbolString secondSymbol = right.substr(1, 1);
 
-			// Проверка на праволинейность (A -> aB)
-			if (m_terminals.contains(firstSymbol) && m_nonTerminals.contains(secondSymbol))
+		// Анализируем правую часть (RHS)
+		int nonTerminalCount = 0;
+		int firstNonTerminalPos = -1;
+		int lastNonTerminalPos = -1;
+
+		for (int i = 0; i < rhs.length(); ++i)
+		{
+			if (nonTerminalChars.contains(rhs[i]))
 			{
-				ruleOk = true;
-				currentRuleType = 0;
-			}
-			// Проверка на леволинейность (A -> Ba)
-			else if (m_nonTerminals.contains(firstSymbol) && m_terminals.contains(secondSymbol))
-			{
-				ruleOk = true;
-				currentRuleType = 1;
+				nonTerminalCount++;
+				lastNonTerminalPos = i;
+				if (firstNonTerminalPos == -1)
+				{
+					firstNonTerminalPos = i;
+				}
 			}
 		}
 
-		if (!ruleOk)
+		// Принимаем решение на основе анализа RHS
+		if (nonTerminalCount == 0)
 		{
-			return false;
+			continue;
 		}
-
-		// 3. Проверка на смешивание типов
-		// Если текущее правило однозначно право- или леволинейное:
-		if (currentRuleType != -1)
+		else if (nonTerminalCount == 1)
 		{
-			// Если тип грамматики еще не определен, устанавливаем его
-			if (determinedType == -1)
+			// Нетерминал стоит в самом начале
+			if (firstNonTerminalPos == 0)
 			{
-				determinedType = currentRuleType;
+				hasLeftLinearRule = true;
 			}
-			// Если тип уже определен и он не совпадает с текущим правилом - ошибка
-			else if (determinedType != currentRuleType)
+			// Нетерминал стоит в самом конце
+			else if (lastNonTerminalPos == rhs.length() - 1)
 			{
-				return false;
+				hasRightLinearRule = true;
 			}
+			// Форма: A -> wBv (e.g., "aBa")
+			else
+			{
+				// Нетерминал в середине. Это нерегулярная грамматика
+				return RegularGrammarType::UNDEFINED;
+			}
+		}
+		else
+		{
+			return RegularGrammarType::UNDEFINED;
 		}
 	}
 
-	return true;
+	if (hasLeftLinearRule && hasRightLinearRule)
+	{
+		return RegularGrammarType::UNDEFINED;
+	}
+	else if (hasLeftLinearRule)
+	{
+		return RegularGrammarType::LEFT_LINEAR;
+	}
+	else if (hasRightLinearRule)
+	{
+		return RegularGrammarType::RIGHT_LINEAR;
+	}
+	else
+	{
+		return RegularGrammarType::RIGHT_LINEAR;
+	}
 }
