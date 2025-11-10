@@ -21,6 +21,7 @@ public:
 	RegexConverterAdapter(const RegexConverterAdapter&) = delete;
 	RegexConverterAdapter& operator=(const RegexConverterAdapter&) = delete;
 
+	static std::string Convert(const Automaton& automaton);
 	static bool Convert(const std::string& regexString, Automaton& automaton) noexcept;
 
 private:

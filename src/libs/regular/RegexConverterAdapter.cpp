@@ -4,9 +4,9 @@
 
 namespace
 {
-	constexpr int C_NFA_MATCH = 256;
-	constexpr int C_NFA_SPLIT = 257;
-}
+constexpr int C_NFA_MATCH = 256;
+constexpr int C_NFA_SPLIT = 257;
+} // namespace
 
 bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& automaton) noexcept
 {
@@ -14,9 +14,7 @@ bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& a
 	automaton.SetTitle("Regular");
 
 	// 1. Вызов C-API (Adaptee)
-
 	std::string mutableRegex = regexString;
-
 	char* post = re2post(mutableRegex.data());
 	if (post == nullptr)
 	{
@@ -30,7 +28,7 @@ bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& a
 	}
 
 	// 2. Конвертация (Логика Адаптера)
-	ConversionContext context{ automaton };
+	ConversionContext context{automaton};
 	std::queue<CState*> workQueue;
 	std::set<CState*> visited;
 

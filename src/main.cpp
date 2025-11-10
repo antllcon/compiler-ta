@@ -1,6 +1,7 @@
 #define EXIT_DATA 2
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
+#include "AutomatonToRegexConverter.h"
 #include "AutomatonVisualizer.h"
 #include "DeterminizationAlgorithm.h"
 #include "MinimizationAlgorithm.h"
@@ -25,8 +26,11 @@ int main()
 		{
 			auto detNfa = DeterminizationAlgorithm::Determine(nfa);
 			auto minNfa = MinimizationAlgorithm::Minimize(detNfa);
-			AutomatonVisualizer::ExportToDot(minNfa, "output/min.dot");
+			// AutomatonVisualizer::ExportToDot(minNfa, "output/min.dot");
 			AutomatonVisualizer::ExportToDot(detNfa, "output/det.dot");
+
+			auto regexFromAutomaton = AutomatonToRegexConverter::Convert(minNfa);
+			std::cout << "\nРегулярное выражение из автомата: "<< regexFromAutomaton << std::endl;
 		}
 	}
 	catch (const std::invalid_argument& e)

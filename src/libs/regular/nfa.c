@@ -17,7 +17,7 @@ char* re2post(char* re)
 	{
 		int nalt;
 		int natom;
-	} paren[100], * p;
+	} paren[100], *p;
 
 	p = paren;
 	dst = buf;
@@ -141,7 +141,8 @@ Frag frag(CState* start, Ptrlist* out)
 	return n;
 }
 
-union Ptrlist {
+union Ptrlist
+{
 	Ptrlist* next;
 	CState* s;
 };
@@ -187,7 +188,7 @@ Ptrlist* append(Ptrlist* l1, Ptrlist* l2)
 CState* post2nfa(char* postfix)
 {
 	char* p;
-	Frag stack[1000], * stackp, e1, e2, e;
+	Frag stack[1000], *stackp, e1, e2, e;
 	CState* s;
 
 	if (postfix == NULL)
