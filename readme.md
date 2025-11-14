@@ -62,7 +62,7 @@ AutomatonVisualizer::ExportToDot(a, "automaton.dot");
 | Получить тип грамматики           | `Grammar::GetLinearityType`           |
 | Перевести грамматику в НКА        | `GrammarToNfaConverter::Convert`      |
 | Перевести регулярную строку в НКА | `RegexConverterAdapter::Convert`      |
-
+| Сгенерировать строки из регуляр.  | `GenerateRegexMatches`                |
 
 ### Формат вывода или ввода данных `.dot` файлов
 

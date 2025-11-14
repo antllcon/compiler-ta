@@ -36,7 +36,7 @@ void AutomatonVisualizer::PrintRecognize(const std::string& word, bool result, c
 	}
 }
 
-void AutomatonVisualizer::TestStrings(const Automaton& automaton, const std::vector<std::string>& words, bool logSteps)
+void AutomatonVisualizer::TestStrings(Automaton& automaton, std::vector<std::string>& words, bool logSteps)
 {
 	std::cout << "\nRecognition words\n";
 	std::cout << "-----------------\n";

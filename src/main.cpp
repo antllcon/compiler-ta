@@ -1,11 +1,11 @@
 #define EXIT_DATA 2
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
-#include "AutomatonToRegexConverter.h"
 #include "AutomatonVisualizer.h"
 #include "DeterminizationAlgorithm.h"
 #include "MinimizationAlgorithm.h"
 #include "RegexConverterAdapter.h"
+#include "RegexGenerator.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -20,17 +20,17 @@ int main()
 	{
 		Automaton nfa;
 		RegexConverterAdapter adapter;
-		std::string regex("(a|b)*|a*(a|b)(a|b)");
+		std::string regex("(a*|a|b)*a|b*(c|b)*b|c*(c|a*)*c");
+
 
 		if (adapter.Convert(regex, nfa))
 		{
-			auto detNfa = DeterminizationAlgorithm::Determine(nfa);
-			auto minNfa = MinimizationAlgorithm::Minimize(detNfa);
-			// AutomatonVisualizer::ExportToDot(minNfa, "output/min.dot");
-			AutomatonVisualizer::ExportToDot(detNfa, "output/det.dot");
+			auto dea = DeterminizationAlgorithm::Determine(nfa);
+			auto min = MinimizationAlgorithm::Minimize(dea);
+			AutomatonVisualizer::ExportToDot(min, "output/result.dot");
 
-			auto regexFromAutomaton = AutomatonToRegexConverter::Convert(minNfa);
-			std::cout << "\nРегулярное выражение из автомата: "<< regexFromAutomaton << std::endl;
+			std::vector<std::string> strings = GenerateRegexMatches(regex, 6);
+			AutomatonVisualizer::TestStrings(min, strings, true);
 		}
 	}
 	catch (const std::invalid_argument& e)

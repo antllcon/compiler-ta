@@ -10,15 +10,14 @@ public:
 	using DfaTransitionTable = std::map<DfaStateKey, std::map<Symbol, DfaStateKey>>;
 
 	static void PrintRecognize(const std::string& word, bool result, const std::string& reason);
-	static void TestStrings(const Automaton& automaton, const std::vector<std::string>& words, bool logSteps);
-    static void Display(const Automaton& automaton);
-    static void ExportToDot(const Automaton& automaton, const std::string& filename);
+	static void TestStrings(Automaton& automaton, std::vector<std::string>& words, bool logSteps);
+	static void Display(const Automaton& automaton);
+	static void ExportToDot(const Automaton& automaton, const std::string& filename);
 	static void PrintMinimizationTable(
 		const std::vector<Symbol>& alphabet,
 		const std::vector<std::set<State>>& partitions,
 		const std::map<State, std::vector<int>>& stateSignatures,
-		int iterationNumber
-	);
+		int iterationNumber);
 	static void PrintDeterminizationTable(
 		const std::vector<Symbol>& alphabet,
 		const DfaTransitionTable& dfaTransitions);
