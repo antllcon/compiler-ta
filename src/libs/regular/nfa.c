@@ -3,93 +3,122 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-/*
- * Convert infix regexp re to postfix notation.
- */
+#define CH_START 1 /* ^ */
+#define CH_END   2 /* $ */
+
 char* re2post(char* re)
 {
-	int nalt, natom;
-	static char buf[8000];
-	char* dst;
-	struct
-	{
-		int nalt;
-		int natom;
-	} paren[100], *p;
+    int nalt, natom;
+    static char buf[8000];
+    char* dst;
+    struct
+    {
+        int nalt;
+        int natom;
+    } paren[100], *p;
 
-	p = paren;
-	dst = buf;
-	nalt = 0;
-	natom = 0;
-	if (strlen(re) >= sizeof buf / 2)
-		return NULL;
-	for (; *re; re++)
-	{
-		switch (*re)
-		{
-		case '(':
-			if (natom > 1)
-			{
-				--natom;
-				*dst++ = '.';
-			}
-			if (p >= paren + 100)
-				return NULL;
-			p->nalt = nalt;
-			p->natom = natom;
-			p++;
-			nalt = 0;
-			natom = 0;
-			break;
-		case '|':
-			if (natom == 0)
-				return NULL;
-			while (--natom > 0)
-				*dst++ = '.';
-			nalt++;
-			break;
-		case ')':
-			if (p == paren)
-				return NULL;
-			if (natom == 0)
-				return NULL;
-			while (--natom > 0)
-				*dst++ = '.';
-			for (; nalt > 0; nalt--)
-				*dst++ = '|';
-			--p;
-			nalt = p->nalt;
-			natom = p->natom;
-			natom++;
-			break;
-		case '*':
-		case '+':
-		case '?':
-			if (natom == 0)
-				return NULL;
-			*dst++ = *re;
-			break;
-		default:
-			if (natom > 1)
-			{
-				--natom;
-				*dst++ = '.';
-			}
-			*dst++ = *re;
-			natom++;
-			break;
-		}
-	}
-	if (p != paren)
-		return NULL;
-	while (--natom > 0)
-		*dst++ = '.';
-	for (; nalt > 0; nalt--)
-		*dst++ = '|';
-	*dst = 0;
-	return buf;
+    p = paren;
+    dst = buf;
+    nalt = 0;
+    natom = 0;
+
+    if (strlen(re) >= sizeof buf / 2)
+        return NULL;
+
+    for (; *re; re++)
+    {
+        switch (*re)
+        {
+        case '(':
+            if (natom > 1)
+            {
+                --natom;
+                *dst++ = '.';
+            }
+            if (p >= paren + 100)
+                return NULL;
+            p->nalt = nalt;
+            p->natom = natom;
+            p++;
+            nalt = 0;
+            natom = 0;
+            break;
+
+        case '|':
+            if (natom == 0)
+                return NULL;
+            while (--natom > 0)
+                *dst++ = '.';
+            nalt++;
+            break;
+
+        case ')':
+            if (p == paren)
+                return NULL;
+            if (natom == 0)
+                return NULL;
+            while (--natom > 0)
+                *dst++ = '.';
+            for (; nalt > 0; nalt--)
+                *dst++ = '|';
+            --p;
+            nalt = p->nalt;
+            natom = p->natom;
+            natom++;
+            break;
+
+        case '*':
+        case '+':
+        case '?':
+            if (natom == 0)
+                return NULL;
+            *dst++ = *re;
+            break;
+
+        case '^':
+            if (natom > 1)
+            {
+                --natom;
+                *dst++ = '.';
+            }
+            *dst++ = (char)CH_START;
+            natom++;
+            break;
+
+        case '$':
+            if (natom > 1)
+            {
+                --natom;
+                *dst++ = '.';
+            }
+            *dst++ = (char)CH_END;
+            natom++;
+            break;
+
+        case '\\':
+            re++;
+            if (!*re) return NULL;
+
+        default:
+            if (natom > 1)
+            {
+                --natom;
+                *dst++ = '.';
+            }
+            *dst++ = *re;
+            natom++;
+            break;
+        }
+    }
+    if (p != paren)
+        return NULL;
+    while (--natom > 0)
+        *dst++ = '.';
+    for (; nalt > 0; nalt--)
+        *dst++ = '|';
+    *dst = 0;
+    return buf;
 }
 
 enum
@@ -106,10 +135,9 @@ struct State
 	int lastlist;
 };
 
-CState matchstate = {Match}; /* matching state */
+CState matchstate = {Match};
 int nstate;
 
-/* Allocate and initialize CState */
 CState* state(int c, CState* out, CState* out1)
 {
 	CState* s;
@@ -123,9 +151,6 @@ CState* state(int c, CState* out, CState* out1)
 	return s;
 }
 
-/*
- * ... (Frag и Ptrlist) ...
- */
 typedef struct Frag Frag;
 typedef union Ptrlist Ptrlist;
 struct Frag
@@ -134,7 +159,6 @@ struct Frag
 	Ptrlist* out;
 };
 
-/* Initialize Frag struct. */
 Frag frag(CState* start, Ptrlist* out)
 {
 	Frag n = {start, out};
@@ -147,7 +171,6 @@ union Ptrlist
 	CState* s;
 };
 
-/* Create singleton list containing just outp. */
 Ptrlist* list1(CState** outp)
 {
 	Ptrlist* l;
@@ -157,7 +180,6 @@ Ptrlist* list1(CState** outp)
 	return l;
 }
 
-/* Patch the list of states at out to point to start. */
 void patch(Ptrlist* l, CState* s)
 {
 	Ptrlist* next;
@@ -169,7 +191,6 @@ void patch(Ptrlist* l, CState* s)
 	}
 }
 
-/* Join the two lists l1 and l2, returning the combination. */
 Ptrlist* append(Ptrlist* l1, Ptrlist* l2)
 {
 	Ptrlist* oldl1;
@@ -181,10 +202,6 @@ Ptrlist* append(Ptrlist* l1, Ptrlist* l2)
 	return oldl1;
 }
 
-/*
- * Convert postfix regular expression to NFA.
- * Return start state.
- */
 CState* post2nfa(char* postfix)
 {
 	char* p;
@@ -206,30 +223,30 @@ CState* post2nfa(char* postfix)
 			s = state(*p, NULL, NULL);
 			push(frag(s, list1(&s->out)));
 			break;
-		case '.': /* catenate */
+		case '.':
 			e2 = pop();
 			e1 = pop();
 			patch(e1.out, e2.start);
 			push(frag(e1.start, e2.out));
 			break;
-		case '|': /* alternate */
+		case '|':
 			e2 = pop();
 			e1 = pop();
 			s = state(Split, e1.start, e2.start);
 			push(frag(s, append(e1.out, e2.out)));
 			break;
-		case '?': /* zero or one */
+		case '?':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			push(frag(s, append(e.out, list1(&s->out1))));
 			break;
-		case '*': /* zero or more */
+		case '*':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			patch(e.out, s);
 			push(frag(s, list1(&s->out1)));
 			break;
-		case '+': /* one or more */
+		case '+':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			patch(e.out, s);

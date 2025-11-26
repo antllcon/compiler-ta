@@ -1,5 +1,7 @@
 #include "AutomatonBuilder.h"
 #include <fstream>
+#include <iostream>
+#include <stringstream>
 
 namespace
 {
@@ -100,17 +102,17 @@ void AutomatonBuilder::ParseLine(Automaton& automaton, const std::string& line)
 	}
 }
 
-void AutomatonBuilder::HandleTitleDeclaration(Automaton& automaton,const std::smatch& match)
+void AutomatonBuilder::HandleTitleDeclaration(Automaton& automaton, const std::smatch& match)
 {
 	automaton.SetTitle(match[1].str());
 }
 
-void AutomatonBuilder::HandleStartDeclaration(Automaton& automaton,const std::smatch& match)
+void AutomatonBuilder::HandleStartDeclaration(Automaton& automaton, const std::smatch& match)
 {
 	automaton.SetStartState(std::stoul(match[1].str()));
 }
 
-void AutomatonBuilder::HandleFinalDeclaration(Automaton& automaton,const std::smatch& match)
+void AutomatonBuilder::HandleFinalDeclaration(Automaton& automaton, const std::smatch& match)
 {
 	for (const auto& state : ParseStateList(match[1].str()))
 	{
@@ -118,7 +120,7 @@ void AutomatonBuilder::HandleFinalDeclaration(Automaton& automaton,const std::sm
 	}
 }
 
-void AutomatonBuilder::HandleEpsilonTransition(Automaton& automaton,const std::smatch& match)
+void AutomatonBuilder::HandleEpsilonTransition(Automaton& automaton, const std::smatch& match)
 {
 	const State from = std::stoul(match[1].str());
 	const State to = std::stoul(match[2].str());
@@ -126,7 +128,7 @@ void AutomatonBuilder::HandleEpsilonTransition(Automaton& automaton,const std::s
 	automaton.AddTransition(from, EPSILON, to);
 }
 
-void AutomatonBuilder::HandleLabelTransition(Automaton& automaton,const std::smatch& match)
+void AutomatonBuilder::HandleLabelTransition(Automaton& automaton, const std::smatch& match)
 {
 	const State from = std::stoul(match[1].str());
 	const State to = std::stoul(match[2].str());
