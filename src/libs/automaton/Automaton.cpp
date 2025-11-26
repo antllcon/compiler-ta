@@ -39,6 +39,11 @@ bool Automaton::IsDeterministic() const
 
 bool Automaton::Recognize(const std::string& inputString, bool logSteps) const
 {
+	auto currentStates = DeterminizationAlgorithm::EpsilonClosure(*this, m_startState);
+	auto startAnchorStates = DeterminizationAlgorithm::Move(*this, currentStates, SYMBOL_START);
+	auto startAnchorClosure = DeterminizationAlgorithm::EpsilonClosure(*this, startAnchorStates);
+	currentStates.insert(startAnchorClosure.begin(), startAnchorClosure.end());
+
 	if (!logSteps)
 	{
 		auto currentStates = DeterminizationAlgorithm::EpsilonClosure(*this, m_startState);
@@ -50,6 +55,7 @@ bool Automaton::Recognize(const std::string& inputString, bool logSteps) const
 				return false;
 			}
 		}
+
 		for (const auto state : currentStates)
 		{
 			if (m_finalStates.contains(state))
@@ -60,19 +66,27 @@ bool Automaton::Recognize(const std::string& inputString, bool logSteps) const
 		return false;
 	}
 
-	auto currentStates = DeterminizationAlgorithm::EpsilonClosure(*this, m_startState);
-
 	for (const auto symbol : inputString)
 	{
-		currentStates = DeterminizationAlgorithm::EpsilonClosure(*this, DeterminizationAlgorithm::Move(*this, currentStates, symbol));
+		auto nextStatesRaw = DeterminizationAlgorithm::Move(*this, currentStates, symbol);
+		auto nextStates = DeterminizationAlgorithm::EpsilonClosure(*this, nextStatesRaw);
 
-		if (currentStates.empty())
+		if (nextStates.empty())
 		{
-			std::string reason = "No valid transition [previous states '" + std::string(1, symbol) + "']";
-			AutomatonVisualizer::PrintRecognize(inputString, false, reason);
+			if (logSteps)
+			{
+				std::string reason = "No valid transition for symbol '" + std::string(1, symbol) + "'";
+				AutomatonVisualizer::PrintRecognize(inputString, false, reason);
+			}
 			return false;
 		}
+
+		currentStates = nextStates;
 	}
+
+	auto endAnchorStates = DeterminizationAlgorithm::Move(*this, currentStates, SYMBOL_END);
+	auto endAnchorClosure = DeterminizationAlgorithm::EpsilonClosure(*this, endAnchorStates);
+	currentStates.insert(endAnchorClosure.begin(), endAnchorClosure.end());
 
 	for (const auto state : currentStates)
 	{
@@ -83,18 +97,22 @@ bool Automaton::Recognize(const std::string& inputString, bool logSteps) const
 		}
 	}
 
-	auto statesToString = [](const std::set<State>& states) -> std::string {
-		std::stringstream ss;
-		ss << "{";
-		for (auto it = states.begin(); it != states.end(); ++it) {
-			ss << *it << (std::next(it) == states.end() ? "" : ", ");
-		}
-		ss << "}";
-		return ss.str();
-	};
+	if (logSteps)
+	{
+		auto statesToString = [](const std::set<State>& states) -> std::string {
+			std::stringstream ss;
+			ss << "{";
+			for (auto it = states.begin(); it != states.end(); ++it) {
+				ss << *it << (std::next(it) == states.end() ? "" : ", ");
+			}
+			ss << "}";
+			return ss.str();
+		};
 
-	std::string reason = "End of string [do not contain this final states " + statesToString(m_finalStates) + "]";
-	AutomatonVisualizer::PrintRecognize(inputString, false, reason);
+		std::string reason = "End of string [do not contain this final states " + statesToString(m_finalStates) + "]";
+		AutomatonVisualizer::PrintRecognize(inputString, false, reason);
+	}
+
 	return false;
 }
 

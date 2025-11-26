@@ -4,121 +4,143 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CH_START 1 /* ^ */
-#define CH_END   2 /* $ */
+#define CODE_ANY   (char)0x80
+#define CODE_START (char)0x81
+#define CODE_END   (char)0x82
+#define CONCAT_OP 0x1F
 
 char* re2post(char* re)
 {
-    int nalt, natom;
-    static char buf[8000];
-    char* dst;
-    struct
-    {
-        int nalt;
-        int natom;
-    } paren[100], *p;
+	int nalt, natom;
+	static char buf[8000];
+	char* dst;
+	struct
+	{
+		int nalt;
+		int natom;
+	} paren[100], *p;
 
-    p = paren;
-    dst = buf;
-    nalt = 0;
-    natom = 0;
+	p = paren;
+	dst = buf;
+	nalt = 0;
+	natom = 0;
 
-    if (strlen(re) >= sizeof buf / 2)
-        return NULL;
+	if (strlen(re) >= sizeof buf / 2)
+		return NULL;
 
-    for (; *re; re++)
-    {
-        switch (*re)
-        {
-        case '(':
-            if (natom > 1)
-            {
-                --natom;
-                *dst++ = '.';
-            }
-            if (p >= paren + 100)
-                return NULL;
-            p->nalt = nalt;
-            p->natom = natom;
-            p++;
-            nalt = 0;
-            natom = 0;
-            break;
+	for (; *re; re++)
+	{
+		switch (*re)
+		{
+		case '(':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			if (p >= paren + 100)
+				return NULL;
+			p->nalt = nalt;
+			p->natom = natom;
+			p++;
+			nalt = 0;
+			natom = 0;
+			break;
 
-        case '|':
-            if (natom == 0)
-                return NULL;
-            while (--natom > 0)
-                *dst++ = '.';
-            nalt++;
-            break;
+		case '|':
+			if (natom == 0)
+				return NULL;
+			while (--natom > 0)
+				*dst++ = CONCAT_OP;
+			nalt++;
+			break;
 
-        case ')':
-            if (p == paren)
-                return NULL;
-            if (natom == 0)
-                return NULL;
-            while (--natom > 0)
-                *dst++ = '.';
-            for (; nalt > 0; nalt--)
-                *dst++ = '|';
-            --p;
-            nalt = p->nalt;
-            natom = p->natom;
-            natom++;
-            break;
+		case ')':
+			if (p == paren)
+				return NULL;
+			if (natom == 0)
+				return NULL;
+			while (--natom > 0)
+				*dst++ = CONCAT_OP;
+			for (; nalt > 0; nalt--)
+				*dst++ = '|';
+			--p;
+			nalt = p->nalt;
+			natom = p->natom;
+			natom++;
+			break;
 
-        case '*':
-        case '+':
-        case '?':
-            if (natom == 0)
-                return NULL;
-            *dst++ = *re;
-            break;
+		case '^':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_START;
+			natom++;
+			break;
 
-        case '^':
-            if (natom > 1)
-            {
-                --natom;
-                *dst++ = '.';
-            }
-            *dst++ = (char)CH_START;
-            natom++;
-            break;
+		case '$':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_END;
+			natom++;
+			break;
 
-        case '$':
-            if (natom > 1)
-            {
-                --natom;
-                *dst++ = '.';
-            }
-            *dst++ = (char)CH_END;
-            natom++;
-            break;
+		case '.':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_ANY;
+			natom++;
+			break;
 
-        case '\\':
-            re++;
-            if (!*re) return NULL;
+		case '*':
+		case '+':
+		case '?':
+			if (natom == 0)
+				return NULL;
+			*dst++ = *re;
+			break;
 
-        default:
-            if (natom > 1)
-            {
-                --natom;
-                *dst++ = '.';
-            }
-            *dst++ = *re;
-            natom++;
-            break;
-        }
-    }
-    if (p != paren)
-        return NULL;
-    while (--natom > 0)
-        *dst++ = '.';
-    for (; nalt > 0; nalt--)
-        *dst++ = '|';
-    *dst = 0;
-    return buf;
+		case '\\':
+			if (*(re + 1))
+			{
+				if (natom > 1)
+				{
+					--natom;
+					*dst++ = CONCAT_OP;
+				}
+				re++;
+				*dst++ = *re;
+				natom++;
+			}
+			break;
+
+		default:
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = *re;
+			natom++;
+			break;
+		}
+	}
+	if (p != paren)
+		return NULL;
+	while (--natom > 0)
+		*dst++ = CONCAT_OP;
+	for (; nalt > 0; nalt--)
+		*dst++ = '|';
+	*dst = 0;
+	return buf;
 }
 
 enum
@@ -223,29 +245,49 @@ CState* post2nfa(char* postfix)
 			s = state(*p, NULL, NULL);
 			push(frag(s, list1(&s->out)));
 			break;
-		case '.':
+
+		case CODE_ANY:
+			s = state(CODE_ANY, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CODE_START:
+			s = state(CODE_START, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CODE_END:
+			s = state(CODE_END, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CONCAT_OP:
 			e2 = pop();
 			e1 = pop();
 			patch(e1.out, e2.start);
 			push(frag(e1.start, e2.out));
 			break;
+
 		case '|':
 			e2 = pop();
 			e1 = pop();
 			s = state(Split, e1.start, e2.start);
 			push(frag(s, append(e1.out, e2.out)));
 			break;
+
 		case '?':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			push(frag(s, append(e.out, list1(&s->out1))));
 			break;
+
 		case '*':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			patch(e.out, s);
 			push(frag(s, list1(&s->out1)));
 			break;
+
 		case '+':
 			e = pop();
 			s = state(Split, e.start, NULL);

@@ -142,10 +142,27 @@ std::set<State> DeterminizationAlgorithm::Move(const Automaton& nfa, const std::
 
 	for (const State state : states)
 	{
-		if (transitions.contains(state) && transitions.at(state).contains(symbol))
+		auto stateIt = transitions.find(state);
+		if (stateIt == transitions.end())
 		{
-			const auto& destinationStates = transitions.at(state).at(symbol);
+			continue;
+		}
+
+		const auto& stateTransitions = stateIt->second;
+
+		if (auto exactIt = stateTransitions.find(symbol); exactIt != stateTransitions.end())
+		{
+			const auto& destinationStates = exactIt->second;
 			result.insert(destinationStates.begin(), destinationStates.end());
+		}
+
+		if (symbol != SYMBOL_START && symbol != SYMBOL_END)
+		{
+			if (auto anyIt = stateTransitions.find(SYMBOL_ANY); anyIt != stateTransitions.end())
+			{
+				const auto& anyDestinationStates = anyIt->second;
+				result.insert(anyDestinationStates.begin(), anyDestinationStates.end());
+			}
 		}
 	}
 

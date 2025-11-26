@@ -8,6 +8,9 @@
 using Symbol = unsigned char;
 using State = unsigned int;
 constexpr Symbol EPSILON = 'e';
+constexpr Symbol SYMBOL_ANY   = 0x80;
+constexpr Symbol SYMBOL_START = 0x81;
+constexpr Symbol SYMBOL_END   = 0x82;
 
 class Automaton
 {
