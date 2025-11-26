@@ -20,8 +20,7 @@ int main()
 	{
 		Automaton nfa;
 		RegexConverterAdapter adapter;
-		std::string regex("(a*|a|b)*a|b*(c|b)*b|c*(c|a*)*c");
-
+		std::string regex("(0|1|2|3|4|5|6|7|8|9|0)+");
 
 		if (adapter.Convert(regex, nfa))
 		{

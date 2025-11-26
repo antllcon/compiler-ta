@@ -12,9 +12,6 @@ std::string RegexRewriter::Preprocess(const std::string& regex)
 
 		if (c == '\\')
 		{
-			// Если это экранирование, сохраняем как есть,
-			// но C-движок должен знать, что это литерал.
-			// Мы передадим это дальше, а re2post обработает.
 			result += c;
 			if (i + 1 < regex.length())
 			{
@@ -25,19 +22,15 @@ std::string RegexRewriter::Preprocess(const std::string& regex)
 
 		if (c == '{')
 		{
-			// Начало квантификатора: ищем закрывающую скобку
-			// ВАЖНО: Квантификатор относится к предыдущему символу.
-			// Если result пуст, это ошибка (или литерал '{', но считаем валидным regex).
 			if (result.empty())
 			{
 				result += c;
 				continue;
 			}
 
-			// Проверяем, есть ли там числа
 			size_t nextPos = i + 1;
 			int min = ParseInt(regex, nextPos);
-			int max = min; // По дефолту {n} -> min=n, max=n
+			int max = min;
 
 			bool rangeFound = false;
 			if (nextPos < regex.length() && regex[nextPos] == ',')
@@ -46,7 +39,6 @@ std::string RegexRewriter::Preprocess(const std::string& regex)
 				nextPos++;
 				if (nextPos < regex.length() && regex[nextPos] == '}')
 				{
-					// Случай {n,} -> max = бесконечность (-1)
 					max = -1;
 				}
 				else
@@ -58,21 +50,16 @@ std::string RegexRewriter::Preprocess(const std::string& regex)
 
 			if (nextPos < regex.length() && regex[nextPos] == '}')
 			{
-				// Успешно распарсили конструкцию {..}
-				// Извлекаем последний атом (упрощенно: последний символ)
-				// ВНИМАНИЕ: Для полной поддержки группировки (abc){2} нужен более сложный парсер.
-				// Сейчас реализуем для одиночных символов, как в базовом NFA.
 				char lastAtom = result.back();
-				result.pop_back(); // Убираем, чтобы перезаписать развернутую версию
+				result.pop_back();
 
 				ExpandQuantifier(result, lastAtom, min, max);
 
-				i = nextPos; // Пропускаем обработанную часть
+				i = nextPos;
 				continue;
 			}
 		}
 
-		// Обычный символ
 		result += c;
 	}
 
@@ -81,19 +68,17 @@ std::string RegexRewriter::Preprocess(const std::string& regex)
 
 void RegexRewriter::ExpandQuantifier(std::string& result, char lastAtom, int min, int max)
 {
-	// 1. Обязательная часть (min раз)
 	for (int k = 0; k < min; ++k)
 	{
 		result += lastAtom;
 	}
 
-	// 2. Опциональная часть
-	if (max == -1) // {n,} -> n раз + замыкание Клини (*)
+	if (max == -1)
 	{
 		result += lastAtom;
 		result += '*';
 	}
-	else // {n,m}
+	else
 	{
 		int count = max - min;
 		for (int k = 0; k < count; ++k)

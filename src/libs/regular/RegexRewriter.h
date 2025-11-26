@@ -5,7 +5,7 @@
 class RegexRewriter
 {
 public:
-	[[nodiscard]] static std::string Preprocess(const std::string& regex);
+	static std::string Preprocess(const std::string& regex);
 
 private:
 	static void ExpandQuantifier(std::string& result, char lastAtom, int min, int max);
