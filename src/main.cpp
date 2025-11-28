@@ -4,8 +4,6 @@
 #include "AutomatonVisualizer.h"
 #include "DeterminizationAlgorithm.h"
 #include "MinimizationAlgorithm.h"
-#include "RegexConverterAdapter.h"
-#include "RegexGenerator.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -18,20 +16,12 @@ int main()
 
 	try
 	{
-		Automaton nfa;
-		RegexConverterAdapter adapter;
-		std::string regex("(a*|a|b)*a|b*(c|b)*b|c*(c|a*)*c");
 
+		auto awt = AutomatonBuilder::FromFile("test.dot");
+		auto dwt = DeterminizationAlgorithm::Determine(awt, true);
+		auto min = MinimizationAlgorithm::Minimize(dwt, true);
+		AutomatonVisualizer::ExportToDot(min, "output/result.dot");
 
-		if (adapter.Convert(regex, nfa))
-		{
-			auto dea = DeterminizationAlgorithm::Determine(nfa);
-			auto min = MinimizationAlgorithm::Minimize(dea);
-			AutomatonVisualizer::ExportToDot(min, "output/result.dot");
-
-			std::vector<std::string> strings = GenerateRegexMatches(regex, 6);
-			AutomatonVisualizer::TestStrings(min, strings, true);
-		}
 	}
 	catch (const std::invalid_argument& e)
 	{
