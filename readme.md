@@ -24,7 +24,7 @@ __Реализовано:__
 
 Как пользоваться библиотекой и как вывести информацию об автомате?
 
-## Пример
+### Пример
 
 ```cpp
 Automaton a;
@@ -45,7 +45,7 @@ AutomatonVisualizer::ExportToDot(a, "automaton.dot");
 
 ---
 
-## Что важно знать
+### Что важно знать
 
 - Символы перехода — `Symbol` (`unsigned char`)
 - `epsilon-transition` обозначено как `'e'` и в выводе отображается как `ε`
@@ -54,21 +54,22 @@ AutomatonVisualizer::ExportToDot(a, "automaton.dot");
 - Для визуализации в графе используйте `AutomatonVisualizer::ExportToDot`
 - `PrintRecognize` и `TestStrings` удобны для логирования результатов распознавания большого кол-ва слов
 
-| Что хочу сделать                  | Метод                                 |
-|-----------------------------------|---------------------------------------|
-| Проверить распознавание слова     | `Automaton::Recognize`                |
-| Протестировать набор слов         | `AutomatonVisualizer::TestStrings`    |
-| Экспортировать в `.dot`           | `AutomatonVisualizer::ExportToDot`    |
-| Вывести информацию об автомате    | `AutomatonVisualizer::Display`        |
-| Проверить детерминированность     | `Automaton::IsDeterministic`          |
-| Минимизировать автомат            | `MinimizationAlgorithm::Minimize`     |
-| Детерминировать автомат           | `DeterminizationAlgorithm::Determine` |
-| Получить грамматику из файла      | `GrammarBuilder::FromFile`            |
-| Проверить регулярна ли грамматика | `Grammar::IsRegular`                  |
-| Получить тип грамматики           | `Grammar::GetLinearityType`           |
-| Перевести грамматику в НКА        | `GrammarToNfaConverter::Convert`      |
-| Перевести регулярную строку в НКА | `RegexConverterAdapter::Convert`      |
-| Сгенерировать строки из регуляр.  | `GenerateRegexMatches`                |
+| Что хочу сделать                  | Метод                                  |
+|-----------------------------------|----------------------------------------|
+| Проверить распознавание слова     | `Automaton::Recognize`                 |
+| Протестировать набор слов         | `AutomatonVisualizer::TestStrings`     |
+| Экспортировать в `.dot`           | `AutomatonVisualizer::ExportToDot`     |
+| Вывести информацию об автомате    | `AutomatonVisualizer::Display`         |
+| Проверить детерминированность     | `Automaton::IsDeterministic`           |
+| Минимизировать автомат            | `MinimizationAlgorithm::Minimize`      |
+| Детерминировать автомат           | `DeterminizationAlgorithm::Determine`  |
+| Получить грамматику из файла      | `GrammarBuilder::FromFile`             |
+| Проверить регулярна ли грамматика | `Grammar::IsRegular`                   |
+| Получить тип грамматики           | `Grammar::GetLinearityType`            |
+| Перевести грамматику в НКА        | `GrammarToNfaConverter::Convert`       |
+| Перевести регулярную строку в НКА | `RegexConverterAdapter::Convert`       |
+| Сгенерировать строки из регуляр.  | `RegexGenerator::GenerateRegexMatches` |
+| Перевести НКА в регулярное выраж. | `AutomatonToRegexConverter::Convert`   |
 
 ### Формат вывода или ввода данных `.dot` файлов
 
@@ -88,6 +89,33 @@ digraph AutmoatonExample // Не обязательно, но всегда пр�
     3 -> 4 [label = "a, c"]; // Может быть несколько букв алфавита для перехода
 }
 ```
+
+### Возможности регулярного выражения
+
+Данный движок поддерживает подмножество стандартных регулярных выражений. Ниже приведен список всех доступных операторов и правил.
+
+![img_1.png](img/img_1.png)
+
+
+При записи регулярного выражения в строковом литерале C++ обратный слэш нужно удваивать.
+
+```cpp
+// Неправильно: 
+// converter.Convert("a\.b", automaton); 
+
+// Правильно:
+converter.Convert("a\\.b", automaton); // Экранируем точку
+```
+
+#### Квантификаторы (Повторения)
+Действуют на предыдущий символ или группу.
+
+![img_2.png](img/img_2.png)
+
+#### Якоря (Границы строки)
+![img_3.png](img/img_3.png)
+
+---
 
 Файлы для тестирования необходимо помещать в папку `/res/input`. Из заготовленных есть интересная проверка минимизации с примера
 сайта [itmo](https://neerc.ifmo.ru/wiki/index.php?title=%D0%9C%D0%B8%D0%BD%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F_%D0%94%D0%9A%D0%90,_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%B7%D0%B0_O(n%5E2)_%D1%81_%D0%BF%D0%BE%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC_%D0%BF%D0%B0%D1%80_%D1%80%D0%B0%D0%B7%D0%BB%D0%B8%D1%87%D0%B8%D0%BC%D1%8B%D1%85_%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B9).

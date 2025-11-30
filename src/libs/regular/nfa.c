@@ -3,11 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-/*
- * Convert infix regexp re to postfix notation.
- */
+#define CODE_ANY   (char)0x80
+#define CODE_START (char)0x81
+#define CODE_END   (char)0x82
+#define CONCAT_OP 0x1F
+
 char* re2post(char* re)
 {
 	int nalt, natom;
@@ -23,8 +24,10 @@ char* re2post(char* re)
 	dst = buf;
 	nalt = 0;
 	natom = 0;
+
 	if (strlen(re) >= sizeof buf / 2)
 		return NULL;
+
 	for (; *re; re++)
 	{
 		switch (*re)
@@ -33,7 +36,7 @@ char* re2post(char* re)
 			if (natom > 1)
 			{
 				--natom;
-				*dst++ = '.';
+				*dst++ = CONCAT_OP;
 			}
 			if (p >= paren + 100)
 				return NULL;
@@ -43,20 +46,22 @@ char* re2post(char* re)
 			nalt = 0;
 			natom = 0;
 			break;
+
 		case '|':
 			if (natom == 0)
 				return NULL;
 			while (--natom > 0)
-				*dst++ = '.';
+				*dst++ = CONCAT_OP;
 			nalt++;
 			break;
+
 		case ')':
 			if (p == paren)
 				return NULL;
 			if (natom == 0)
 				return NULL;
 			while (--natom > 0)
-				*dst++ = '.';
+				*dst++ = CONCAT_OP;
 			for (; nalt > 0; nalt--)
 				*dst++ = '|';
 			--p;
@@ -64,6 +69,37 @@ char* re2post(char* re)
 			natom = p->natom;
 			natom++;
 			break;
+
+		case '^':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_START;
+			natom++;
+			break;
+
+		case '$':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_END;
+			natom++;
+			break;
+
+		case '.':
+			if (natom > 1)
+			{
+				--natom;
+				*dst++ = CONCAT_OP;
+			}
+			*dst++ = CODE_ANY;
+			natom++;
+			break;
+
 		case '*':
 		case '+':
 		case '?':
@@ -71,11 +107,26 @@ char* re2post(char* re)
 				return NULL;
 			*dst++ = *re;
 			break;
+
+		case '\\':
+			if (*(re + 1))
+			{
+				if (natom > 1)
+				{
+					--natom;
+					*dst++ = CONCAT_OP;
+				}
+				re++;
+				*dst++ = *re;
+				natom++;
+			}
+			break;
+
 		default:
 			if (natom > 1)
 			{
 				--natom;
-				*dst++ = '.';
+				*dst++ = CONCAT_OP;
 			}
 			*dst++ = *re;
 			natom++;
@@ -85,7 +136,7 @@ char* re2post(char* re)
 	if (p != paren)
 		return NULL;
 	while (--natom > 0)
-		*dst++ = '.';
+		*dst++ = CONCAT_OP;
 	for (; nalt > 0; nalt--)
 		*dst++ = '|';
 	*dst = 0;
@@ -106,10 +157,9 @@ struct State
 	int lastlist;
 };
 
-CState matchstate = {Match}; /* matching state */
+CState matchstate = {Match};
 int nstate;
 
-/* Allocate and initialize CState */
 CState* state(int c, CState* out, CState* out1)
 {
 	CState* s;
@@ -123,9 +173,6 @@ CState* state(int c, CState* out, CState* out1)
 	return s;
 }
 
-/*
- * ... (Frag и Ptrlist) ...
- */
 typedef struct Frag Frag;
 typedef union Ptrlist Ptrlist;
 struct Frag
@@ -134,7 +181,6 @@ struct Frag
 	Ptrlist* out;
 };
 
-/* Initialize Frag struct. */
 Frag frag(CState* start, Ptrlist* out)
 {
 	Frag n = {start, out};
@@ -147,7 +193,6 @@ union Ptrlist
 	CState* s;
 };
 
-/* Create singleton list containing just outp. */
 Ptrlist* list1(CState** outp)
 {
 	Ptrlist* l;
@@ -157,7 +202,6 @@ Ptrlist* list1(CState** outp)
 	return l;
 }
 
-/* Patch the list of states at out to point to start. */
 void patch(Ptrlist* l, CState* s)
 {
 	Ptrlist* next;
@@ -169,7 +213,6 @@ void patch(Ptrlist* l, CState* s)
 	}
 }
 
-/* Join the two lists l1 and l2, returning the combination. */
 Ptrlist* append(Ptrlist* l1, Ptrlist* l2)
 {
 	Ptrlist* oldl1;
@@ -181,10 +224,6 @@ Ptrlist* append(Ptrlist* l1, Ptrlist* l2)
 	return oldl1;
 }
 
-/*
- * Convert postfix regular expression to NFA.
- * Return start state.
- */
 CState* post2nfa(char* postfix)
 {
 	char* p;
@@ -206,30 +245,50 @@ CState* post2nfa(char* postfix)
 			s = state(*p, NULL, NULL);
 			push(frag(s, list1(&s->out)));
 			break;
-		case '.': /* catenate */
+
+		case CODE_ANY:
+			s = state(CODE_ANY, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CODE_START:
+			s = state(CODE_START, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CODE_END:
+			s = state(CODE_END, NULL, NULL);
+			push(frag(s, list1(&s->out)));
+			break;
+
+		case CONCAT_OP:
 			e2 = pop();
 			e1 = pop();
 			patch(e1.out, e2.start);
 			push(frag(e1.start, e2.out));
 			break;
-		case '|': /* alternate */
+
+		case '|':
 			e2 = pop();
 			e1 = pop();
 			s = state(Split, e1.start, e2.start);
 			push(frag(s, append(e1.out, e2.out)));
 			break;
-		case '?': /* zero or one */
+
+		case '?':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			push(frag(s, append(e.out, list1(&s->out1))));
 			break;
-		case '*': /* zero or more */
+
+		case '*':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			patch(e.out, s);
 			push(frag(s, list1(&s->out1)));
 			break;
-		case '+': /* one or more */
+
+		case '+':
 			e = pop();
 			s = state(Split, e.start, NULL);
 			patch(e.out, s);

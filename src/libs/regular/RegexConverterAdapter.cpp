@@ -1,4 +1,7 @@
 #include "RegexConverterAdapter.h"
+
+#include "RegexRewriter.h"
+
 #include <queue>
 #include <set>
 
@@ -13,9 +16,14 @@ bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& a
 	automaton.Clear();
 	automaton.SetTitle("Regular");
 
+	// 0. Препроцессинг: Разворачиваем {n, m}
+	std::string expandedRegex = RegexRewriter::Preprocess(regexString);
+
 	// 1. Вызов C-API (Adaptee)
-	std::string mutableRegex = regexString;
-	char* post = re2post(mutableRegex.data());
+	std::vector buffer(expandedRegex.begin(), expandedRegex.end());
+	buffer.push_back('\0');
+
+	char* post = re2post(buffer.data());
 	if (post == nullptr)
 	{
 		return false;
@@ -80,7 +88,7 @@ bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& a
 		default:
 			if (cCurrent->out)
 			{
-				Symbol symbol = static_cast<Symbol>(cCurrent->c);
+				auto symbol = static_cast<Symbol>(cCurrent->c);
 				State cppTo = GetOrCreateState(context, cCurrent->out);
 				automaton.AddTransition(cppFromState, symbol, cppTo);
 
