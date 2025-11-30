@@ -1,9 +1,8 @@
 #define EXIT_DATA 2
 #include "Automaton.h"
 #include "AutomatonBuilder.h"
-#include "AutomatonVisualizer.h"
+#include "CodeRecognizer.h"
 #include "DeterminizationAlgorithm.h"
-#include "MinimizationAlgorithm.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -16,11 +15,8 @@ int main()
 
 	try
 	{
-		auto awt = AutomatonBuilder::FromFile("input/automatons/test.dot");
-		auto dwt = DeterminizationAlgorithm::Determine(awt, true);
-		auto min = MinimizationAlgorithm::Minimize(dwt, true);
-		AutomatonVisualizer::ExportToDot(min, "output/result.dot");
-
+		CodeRecognizer recognizer(true);
+		recognizer.ProcessFile("input/lexers/code.txt");
 	}
 	catch (const std::invalid_argument& e)
 	{

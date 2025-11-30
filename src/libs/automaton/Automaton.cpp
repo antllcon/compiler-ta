@@ -4,6 +4,7 @@
 #include "DeterminizationAlgorithm.h"
 
 #include <regex>
+#include <sstream>
 
 namespace
 {
