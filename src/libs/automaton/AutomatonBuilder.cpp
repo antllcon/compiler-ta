@@ -1,5 +1,6 @@
 #include "AutomatonBuilder.h"
 #include <fstream>
+#include <sstream>
 
 namespace
 {

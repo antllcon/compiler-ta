@@ -11,7 +11,7 @@ constexpr int C_NFA_MATCH = 256;
 constexpr int C_NFA_SPLIT = 257;
 } // namespace
 
-bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& automaton) noexcept
+bool RegexConverterAdapter::Convert(const std::string& regexString, Automaton& automaton)
 {
 	automaton.Clear();
 	automaton.SetTitle("Regular");

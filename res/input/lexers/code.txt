@@ -1,0 +1,18 @@
+int main()
+{
+    int counter = 10
+    bol flag = true
+    dbl ratio = 3.14
+    stg message = "Hello"
+
+    println(message)
+    print(counter)
+
+    if (counter > 5)
+    {
+        counter = counter + 1
+        println("Increased")
+    }
+
+    return counter
+}
