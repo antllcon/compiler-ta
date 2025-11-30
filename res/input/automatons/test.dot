@@ -1,29 +1,17 @@
-digraph test
+digraph Test
 {
-    start = 3;
-    final = 16;
+    start = 0, 5;
+    final = 4;
 
-    3 -> 0;
-    0 -> 1 [label = "x"];
-    1 -> 1 [label = "y"];
-    1 -> 12;
-    12 -> 13 [label = "x"];
-    13 -> 16;
-    12 -> 15;
-    15 -> 15 [label = "y"];
-    15 -> 16;
-
-    3 -> 5;
-    5 -> 6 [label = "a"];
-    6 -> 7 [label = "b"];
-    7 -> 12;
-    3 -> 4;
-    4 -> 10;
-    10 -> 10 [label = "a"];
-    4 -> 9 [label = "x"];
-    9 -> 11;
-    10 - > 11;
-    11 -> 12;
-
-    1 -> 0 [label = "a, b"];
+    0 -> 1 [label = "a"];
+    0 -> 2 [label = "b"];
+    1 -> 1 [label = "a"];
+    1 -> 3 [label = "b"];
+    2 -> 2 [label = "b"];
+    2 -> 1 [label = "a"];
+    3 -> 1 [label = "a"];
+    3 -> 4 [label = "b"];
+    4 -> 2 [label = "b"];
+    4 -> 1 [label = "a"];
+    5 -> 4 [label = "a"];
 }

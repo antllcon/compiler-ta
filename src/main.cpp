@@ -16,8 +16,7 @@ int main()
 
 	try
 	{
-
-		auto awt = AutomatonBuilder::FromFile("test.dot");
+		auto awt = AutomatonBuilder::FromFile("input/automatons/test.dot");
 		auto dwt = DeterminizationAlgorithm::Determine(awt, true);
 		auto min = MinimizationAlgorithm::Minimize(dwt, true);
 		AutomatonVisualizer::ExportToDot(min, "output/result.dot");
